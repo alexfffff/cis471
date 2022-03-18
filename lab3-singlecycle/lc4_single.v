@@ -1,4 +1,4 @@
-/* TODO: name and PennKeys of all group members here
+/* TODO: Adong9, alexnader dong, mipang, michelle pang
  *
  * lc4_single.v
  * Implements a single-cycle data path
@@ -68,6 +68,60 @@ module lc4_processor
     * TODO: INSERT YOUR CODE HERE *
     *******************************/
 
+// module lc4_decoder(input  wire [15:0] insn,               // instruction
+//                    output wire [ 2:0] r1sel,              // rs
+//                    output wire        r1re,               // does this instruction read from rs?
+//                    output wire [ 2:0] r2sel,              // rt
+//                    output wire        r2re,               // does this instruction read from rt?
+//                    output wire [ 2:0] wsel,               // rd
+//                    output wire        regfile_we,         // does this instruction write to rd?
+//                    output wire        nzp_we,             // does this instruction write the NZP bits?
+//                    output wire        select_pc_plus_one, // write PC+1 to the regfile?
+//                    output wire        is_load,            // is this a load instruction?
+//                    output wire        is_store,           // is this a store instruction?
+//                    output wire        is_branch,          // is this a branch instruction?
+//                    output wire        is_control_insn     // is this a control instruction (JSR, JSRR, RTI, JMPR, JMP, TRAP)?
+//                    );
+   
+   wire [2:0] r1sel,r2sel,wsel, last_nzp_bit, new_nzp_bit;
+   wire [15:0] alu_result, pc_plus_one;
+   wire [15:0] rs_data, rt_data, i_rd_data, nzp_check;
+   wire r1re,r2re,regfile_we,nzp_we,select_pc_plus_one,is_load,is_store,is_branch,is_control_insn,nzp_result;
+   lc4_decoder h0(.insn(i_cur_insn), .r1sel(r1sel),.r2sel(r2sel),.wsel(wsel),.r1re(r1re),.r2re(r2re),.regfile_we(regfile_we),.nzp_we(nzp_we),.select_pc_plus_one(select_pc_plus_one),
+   .is_load(is_load),.is_store(is_store),.is_branch(is_branch),.is_control_insn(is_control_insn));
+   cla16 h3 (.a(pc),.b(16'd1),.cin(1'd0),.sum(pc_plus_one));
+   assign i_rd_data = (is_load) ? i_cur_dmem_data : (select_pc_plus_one) ? pc_plus_one : (regfile_we) ? alu_result : 16'd0;
+   
+   lc4_regfile h1(.clk(clk), .gwe(gwe), .rst(rst), .o_rs_data(rs_data), .i_rs(r1sel), .i_rt(r2sel), .o_rt_data(rt_data), .i_rd(wsel), .i_wdata(i_rd_data), .i_rd_we(regfile_we));
+   
+   lc4_alu h2(.i_insn(i_cur_insn),.i_pc(pc),.i_r1data(rs_data),.i_r2data(rt_data),.o_result(alu_result));
+
+   assign nzp_check = (is_load ) ? i_cur_dmem_data:(is_control_insn & regfile_we) ? 16'd1: alu_result;
+   assign new_nzp_bit = nzp_check == 16'd0 ? 3'b010 :  ($signed(nzp_check) > $signed(16'd0)) ? 3'b001 : 3'b100;
+   Nbit_reg #(3, 3'b000) nzp_reg (.in(new_nzp_bit), .out(last_nzp_bit), .clk(clk), .we(nzp_we), .gwe(gwe), .rst(rst)); 
+   assign nzp_result = (i_cur_insn[11:9] & last_nzp_bit) > 3'd0;
+    
+
+   assign o_dmem_addr = (is_store || is_load) ? alu_result : 16'd0;
+   assign o_dmem_we = is_store;
+   assign o_cur_pc =  pc;
+   assign next_pc = ((is_branch & nzp_result) || is_control_insn)  ? alu_result: pc_plus_one;
+   assign o_dmem_towrite = (is_store ) ? rt_data : 16'd0;
+   
+   assign test_stall = 2'b00;
+   assign test_cur_pc = pc;
+   assign test_cur_insn = i_cur_insn;
+   assign test_regfile_we = regfile_we;
+   assign test_regfile_wsel = wsel;
+   assign test_regfile_data = i_rd_data;
+   assign test_nzp_we = nzp_we;
+   assign test_nzp_new_bits = new_nzp_bit ;
+   assign test_dmem_we = o_dmem_we;
+   assign test_dmem_addr = o_dmem_addr;
+   assign test_dmem_data = (is_store) ? o_dmem_towrite: (is_load) ? i_cur_dmem_data: 16'd0 ;
+   
+   
+
 
 
    /* Add $display(...) calls in the always block below to
@@ -132,3 +186,4 @@ module lc4_processor
    end
 `endif
 endmodule
+

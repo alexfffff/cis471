@@ -1,0 +1,75 @@
+
+ /----------------------------------------------------------------------------\
+ |                                                                            |
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |                                                                            |
+ |  Copyright (C) 2012 - 2020  Claire Wolf <claire@symbioticeda.com>          |
+ |                                                                            |
+ |  Permission to use, copy, modify, and/or distribute this software for any  |
+ |  purpose with or without fee is hereby granted, provided that the above    |
+ |  copyright notice and this permission notice appear in all copies.         |
+ |                                                                            |
+ |  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES  |
+ |  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF          |
+ |  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR   |
+ |  ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES    |
+ |  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN     |
+ |  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF   |
+ |  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.            |
+ |                                                                            |
+ \----------------------------------------------------------------------------/
+
+ Yosys 0.9+3855 (git sha1 54294957, clang 7.0.1 -fPIC -Os)
+
+
+-- Parsing `lc4_alu.v' using frontend `verilog' --
+
+1. Executing Verilog-2005 frontend: lc4_alu.v
+Parsing Verilog input from `lc4_alu.v' to AST representation.
+Warning: Literal has a width of 11 bit, but value requires 15 bit. (lc4_alu.v:68)
+Generating RTLIL representation for module `\lc4_alu'.
+Successfully finished Verilog frontend.
+
+-- Parsing `lc4_divider.v' using frontend `verilog' --
+
+2. Executing Verilog-2005 frontend: lc4_divider.v
+Parsing Verilog input from `lc4_divider.v' to AST representation.
+Generating RTLIL representation for module `\lc4_divider'.
+Generating RTLIL representation for module `\lc4_divider_one_iter'.
+Successfully finished Verilog frontend.
+
+-- Parsing `lc4_cla.v' using frontend `verilog' --
+
+3. Executing Verilog-2005 frontend: lc4_cla.v
+Parsing Verilog input from `lc4_cla.v' to AST representation.
+Generating RTLIL representation for module `\gp1'.
+Generating RTLIL representation for module `\gp4'.
+Generating RTLIL representation for module `\cla16'.
+Generating RTLIL representation for module `\gpn'.
+Successfully finished Verilog frontend.
+
+-- Running command `check; hierarchy -check; flatten; check -assert' --
+
+4. Executing CHECK pass (checking for obvious problems).
+Checking module cla16...
+Checking module gp4...
+Checking module gp1...
+Checking module lc4_alu...
+Found and reported 0 problems.
+
+5. Executing HIERARCHY pass (managing design hierarchy).
+
+6. Executing FLATTEN pass (flatten design).
+<suppressed ~23 debug messages>
+
+7. Executing CHECK pass (checking for obvious problems).
+Checking module cla16...
+Checking module gp4...
+Checking module gp1...
+Checking module lc4_alu...
+Found and reported 0 problems.
+
+Warnings: 1 unique messages, 1 total
+End of script. Logfile hash: 71461c57ba, CPU: user 0.07s system 0.00s, MEM: 17.79 MB peak
+Yosys 0.9+3855 (git sha1 54294957, clang 7.0.1 -fPIC -Os)
+Time spent: 70% 2x check (0 sec), 16% 3x read_verilog (0 sec), ...

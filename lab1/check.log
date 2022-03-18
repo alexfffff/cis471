@@ -1,0 +1,100 @@
+
+ /----------------------------------------------------------------------------\
+ |                                                                            |
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |                                                                            |
+ |  Copyright (C) 2012 - 2020  Claire Wolf <claire@symbioticeda.com>          |
+ |                                                                            |
+ |  Permission to use, copy, modify, and/or distribute this software for any  |
+ |  purpose with or without fee is hereby granted, provided that the above    |
+ |  copyright notice and this permission notice appear in all copies.         |
+ |                                                                            |
+ |  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES  |
+ |  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF          |
+ |  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR   |
+ |  ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES    |
+ |  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN     |
+ |  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF   |
+ |  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.            |
+ |                                                                            |
+ \----------------------------------------------------------------------------/
+
+ Yosys 0.9+3855 (git sha1 54294957, clang 7.0.1 -fPIC -Os)
+
+
+-- Parsing `rca.v' using frontend `verilog' --
+
+1. Executing Verilog-2005 frontend: rca.v
+Parsing Verilog input from `rca.v' to AST representation.
+Generating RTLIL representation for module `\halfadder'.
+Generating RTLIL representation for module `\fulladder'.
+Generating RTLIL representation for module `\fulladder2'.
+Generating RTLIL representation for module `\rca4'.
+Successfully finished Verilog frontend.
+
+-- Running command `check; hierarchy -check; flatten; check -assert' --
+
+2. Executing CHECK pass (checking for obvious problems).
+Checking module rca4...
+Checking module fulladder2...
+Checking module fulladder...
+Warning: multiple conflicting drivers for fulladder.\s:
+    port s[0] of cell h1 (halfadder)
+    port s[0] of cell h0 (halfadder)
+Warning: Wire fulladder.\s_tmp is used but has no driver.
+Checking module halfadder...
+Found and reported 2 problems.
+
+3. Executing HIERARCHY pass (managing design hierarchy).
+Warning: Resizing cell port rca4.a3.a from 3 bits to 2 bits.
+
+4. Executing FLATTEN pass (flatten design).
+<suppressed ~6 debug messages>
+
+5. Executing CHECK pass (checking for obvious problems).
+Checking module rca4...
+Warning: multiple conflicting drivers for rca4.$flatten\a0.\a0.\h1.$xor$rca.v:14$1_Y:
+    port Y[0] of cell $flatten\a0.\a0.\h1.$xor$rca.v:14$1 ($xor)
+    port Y[0] of cell $flatten\a0.\a0.\h0.$xor$rca.v:14$1 ($xor)
+Warning: multiple conflicting drivers for rca4.$flatten\a0.\a1.\h1.$xor$rca.v:14$1_Y:
+    port Y[0] of cell $flatten\a0.\a1.\h0.$xor$rca.v:14$1 ($xor)
+    port Y[0] of cell $flatten\a0.\a1.\h1.$xor$rca.v:14$1 ($xor)
+Warning: multiple conflicting drivers for rca4.$flatten\a3.\a0.\h1.$xor$rca.v:14$1_Y:
+    port Y[0] of cell $flatten\a3.\a0.\h1.$xor$rca.v:14$1 ($xor)
+    port Y[0] of cell $flatten\a3.\a0.\h0.$xor$rca.v:14$1 ($xor)
+Warning: multiple conflicting drivers for rca4.$flatten\a3.\a1.\h1.$xor$rca.v:14$1_Y:
+    port Y[0] of cell $flatten\a3.\a1.\h0.$xor$rca.v:14$1 ($xor)
+    port Y[0] of cell $flatten\a3.\a1.\h1.$xor$rca.v:14$1 ($xor)
+Warning: Wire rca4.\a0.a1.s_tmp is used but has no driver.
+Warning: Wire rca4.\a0.a0.s_tmp is used but has no driver.
+Warning: Wire rca4.\a3.a1.s_tmp is used but has no driver.
+Warning: Wire rca4.\a3.a0.s_tmp is used but has no driver.
+Warning: found logic loop in module rca4:
+    cell $flatten\a0.\a1.$or$rca.v:29$3 ($or)
+    cell $flatten\a0.\a1.\h1.$and$rca.v:15$2 ($and)
+    wire $flatten\a0.\a1.$or$rca.v:29$3_Y
+    wire $flatten\a0.\a1.\h1.$and$rca.v:15$2_Y
+Warning: found logic loop in module rca4:
+    cell $flatten\a3.\a1.$or$rca.v:29$3 ($or)
+    cell $flatten\a3.\a1.\h1.$and$rca.v:15$2 ($and)
+    wire $flatten\a3.\a1.$or$rca.v:29$3_Y
+    wire $flatten\a3.\a1.\h1.$and$rca.v:15$2_Y
+Checking module fulladder2...
+Warning: multiple conflicting drivers for fulladder2.$flatten\a0.\h1.$xor$rca.v:14$1_Y:
+    port Y[0] of cell $flatten\a0.\h1.$xor$rca.v:14$1 ($xor)
+    port Y[0] of cell $flatten\a0.\h0.$xor$rca.v:14$1 ($xor)
+Warning: multiple conflicting drivers for fulladder2.$flatten\a1.\h1.$xor$rca.v:14$1_Y:
+    port Y[0] of cell $flatten\a1.\h1.$xor$rca.v:14$1 ($xor)
+    port Y[0] of cell $flatten\a1.\h0.$xor$rca.v:14$1 ($xor)
+Warning: Wire fulladder2.\a0.s_tmp is used but has no driver.
+Warning: Wire fulladder2.\a1.s_tmp is used but has no driver.
+Warning: found logic loop in module fulladder2:
+    cell $flatten\a1.$or$rca.v:29$3 ($or)
+    cell $flatten\a1.\h1.$and$rca.v:15$2 ($and)
+    wire $flatten\a1.$or$rca.v:29$3_Y
+    wire $flatten\a1.\h1.$and$rca.v:15$2_Y
+Checking module fulladder...
+Warning: multiple conflicting drivers for fulladder.$flatten\h1.$xor$rca.v:14$1_Y:
+    port Y[0] of cell $flatten\h1.$xor$rca.v:14$1 ($xor)
+    port Y[0] of cell $flatten\h0.$xor$rca.v:14$1 ($xor)
+Warning: Wire fulladder.\s_tmp is used but has no driver.

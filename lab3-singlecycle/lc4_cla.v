@@ -28,7 +28,18 @@ module gp4(input wire [3:0] gin, pin,
            input wire cin,
            output wire gout, pout,
            output wire [2:0] cout);
-   
+  assign cout[0] = gin[0] | (pin[0] & cin);
+  genvar i;
+  generate
+    for (i = 1; i < 3; i = i+1) begin
+      assign cout[i] = gin[i] | (pin[i] & cout[i-1]);
+    end
+
+  endgenerate
+
+  assign gout = gin[0] & pin[1] & pin[2] & pin[3] | gin[1] & pin[2] & pin[3] | gin[2] & pin[3] | gin[3];
+  assign pout = pin[0] & pin[1] & pin[2] & pin[3];
+
 endmodule
 
 /**
@@ -42,7 +53,24 @@ module cla16
   (input wire [15:0]  a, b,
    input wire         cin,
    output wire [15:0] sum);
+  wire [15:0] g, p;
+  wire [3:0] gout,pout;
+  wire [16:0] c;
+  assign c[0] = cin;
+  genvar i;
+  generate
+    for (i = 0; i < 16; i = i+1) begin
+      gp1 h0(.a(a[i]),.b(b[i]),.g(g[i]),.p(p[i]));
+    end
+    for (i = 0; i <4; i= i+1) begin
+      gp4 h1(.gin(g[4*i+3:4*i]), .pin(p[4*i+3:4*i]),.cin(c[4*i]),.gout(gout[i]),.pout(pout[i]),.cout(c[4*i + 3: 4*i + 1]));
+      assign c[(i+1)*4] = gout[i] | (pout[i] & c[i*4]);
 
+    end
+    for (i = 0; i < 16; i = i +1) begin
+      assign sum[i] = a[i] ^ b[i] ^ c[i];
+    end
+  endgenerate
 endmodule
 
 
