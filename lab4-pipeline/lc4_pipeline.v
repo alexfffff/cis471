@@ -41,7 +41,7 @@ module lc4_processor
    Nbit_reg #(16, 16'h8200) pc_reg (.in(pc_next_pc), .out(pc_pc), .clk(clk), .we(1'b1), .gwe(gwe), .rst(rst));
    
    cla16 h3 (.a(pc_pc),.b(16'd1),.cin(1'd0),.sum(pc_plus_one));
-   assign pc_next_pc = (should_stall) ? pc_pc: pc_plus_one;
+   assign pc_next_pc = (should_branch) ? x_alu_result : (should_stall) ? pc_pc: pc_plus_one;
    assign o_cur_pc = pc_pc;
    
    Nbit_reg #(16,16'd0) pcd_pc(.in(pc_pc), .out(d_pc), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
@@ -56,9 +56,9 @@ module lc4_processor
    //
    wire [15:0] t_d_pc, t_d_cur_insn, t_d_cur_dmem, d_pc_plus_one;
 
-   assign t_d_pc = (should_stall) ? x_pc: d_pc;
-   assign t_d_cur_insn = (should_stall) ? x_cur_insn: d_cur_insn;
-   assign t_d_cur_dmem = (should_stall) ? x_cur_dmem: d_cur_dmem;
+   assign t_d_pc = (should_branch) ? 16'd2 : (should_stall) ? x_pc: d_pc;
+   assign t_d_cur_insn = (should_branch) ? 16'd2: (should_stall) ? x_cur_insn: d_cur_insn;
+   assign t_d_cur_dmem = (should_branch) ? 16'd2: (should_stall) ? x_cur_dmem: d_cur_dmem;
    
    cla16 h6 (.a(t_d_pc),.b(16'd1),.cin(1'd0),.sum(d_pc_plus_one));
    lc4_decoder h0(.insn(t_d_cur_insn), .r1sel(d_r1sel),.r2sel(d_r2sel),.wsel(d_wsel),.r1re(d_r1re),.r2re(d_r2re),
@@ -96,9 +96,9 @@ module lc4_processor
    //
    wire [15:0] t_x_pc, t_x_cur_insn, t_x_cur_dmem;
    
-   assign t_x_pc = (should_stall) ? 16'd1: x_pc;
-   assign t_x_cur_insn = (should_stall) ? 16'd0: x_cur_insn;
-   assign t_x_cur_dmem = (should_stall) ? 16'd0: x_cur_dmem;
+   assign t_x_pc = (should_branch || should_stall) ? 16'd1: x_pc;
+   assign t_x_cur_insn = (should_branch) ? 16'd2: (should_stall) ? 16'd1: x_cur_insn;
+   assign t_x_cur_dmem = (should_branch) ? 16'd2: (should_stall) ? 16'd1: x_cur_dmem;
    
    wire [15:0] t_rs_data, t_rt_data, x_pc_plus_one,x_nzp_check;
    wire [2:0] x_last_nzp_bit, x_new_nzp_bit;
@@ -107,7 +107,7 @@ module lc4_processor
    
    //mx and wx bypass logic that goes in to X 
    assign t_rs_data = (m_wsel == x_r1sel) ? m_rd_data : (w_wsel == x_r1sel)? w_rd_data: x_rs_data;
-   assign t_rs_data = (m_wsel == x_r1sel) ? m_rd_data : (w_wsel == x_r1sel)? w_rd_data: x_rs_data;
+   assign t_rt_data = (m_wsel == x_r2sel) ? m_rd_data : (w_wsel == x_r2sel)? w_rd_data: x_rt_data;
    
 
 
@@ -125,6 +125,8 @@ module lc4_processor
    wire should_stall;
    assign should_stall = (x_is_load) && (((d_r1sel == x_wsel) || (d_r2sel == x_wsel)) && (d_is_store == 0));
 
+   wire should_branch;
+   assign should_branch = x_is_branch && x_nzp_result;
 
    Nbit_reg #(16,16'd0) xm_pc(.in(t_x_pc), .out(m_pc), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(16,16'd0) xm_insn(.in(t_x_cur_insn), .out(m_cur_insn), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
@@ -145,10 +147,11 @@ module lc4_processor
    Nbit_reg #(1,1'b0) xm_is_store(.in(x_is_store), .out(m_is_store), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(1,1'b0) xm_is_branch(.in(x_is_branch), .out(m_is_branch), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(1,1'b0) xm_is_control_insn(.in(x_is_control_insn), .out(m_is_control_insn), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
+   Nbit_reg #(3,3'b000) xm_new_nzp_bit(.in(x_new_nzp_bit), .out(m_new_nzp_bit), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
 
    // M 
    wire [15:0] m_pc,m_cur_insn,m_cur_dmem,m_alu_result, m_rs_data, m_rt_data, m_rd_data;
-   wire [2:0] m_r1sel,m_r2sel,m_wsel;
+   wire [2:0] m_r1sel,m_r2sel,m_wsel, m_new_nzp_bit;
    wire m_r1re,m_r2re,m_regfile_we,m_nzp_we,m_select_pc_plus_one,m_is_load,m_is_store,m_is_branch,m_is_control_insn;
    
    wire m_dmem_addr,m_dmem_we;
@@ -182,10 +185,11 @@ module lc4_processor
    Nbit_reg #(1,1'b0) mw_is_store(.in(m_is_store), .out(w_is_store), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(1,1'b0) mw_is_branch(.in(m_is_branch), .out(w_is_branch), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(1,1'b0) mw_is_control_insn(.in(m_is_control_insn), .out(w_is_control_insn), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
-   
+   Nbit_reg #(3,3'b000) mw_new_nzp_bit(.in(m_new_nzp_bit), .out(w_new_nzp_bit), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
+
    //W 
    wire [15:0] w_pc,w_cur_insn,w_alu_result, w_rs_data, w_rt_data, w_rd_data;
-   wire [2:0] w_r1sel,w_r2sel,w_wsel;
+   wire [2:0] w_r1sel,w_r2sel,w_wsel, w_new_nzp_bit;
    wire w_r1re,w_r2re,w_regfile_we,w_nzp_we,w_select_pc_plus_one,w_is_load,w_is_store,w_is_branch,w_is_control_insn;
 
    wire [1:0] stall_value;
@@ -201,8 +205,8 @@ module lc4_processor
    assign test_regfile_we = w_regfile_we;
    assign test_regfile_wsel = w_wsel;
    assign test_regfile_data = w_rd_data;
-   assign test_nzp_we = x_nzp_we;
-   assign test_nzp_new_bits = x_new_nzp_bit ;
+   assign test_nzp_we = w_nzp_we;
+   assign test_nzp_new_bits = w_new_nzp_bit;
    assign test_dmem_we = m_dmem_we;
    assign test_dmem_addr = m_dmem_addr;
    assign test_dmem_data =  (m_is_store) ? m_dmem_towrite : (m_is_load) ? m_cur_dmem: 16'd0 ;
@@ -233,9 +237,14 @@ module lc4_processor
       //    $display("x_pc: %h, insn: %b, nzp_check: %h, new_nzp_bit: %d , last_nzp_bit: %d, rs_data: %b, rd_data: %b, nzp_we: %d, alu_result: %h,stall:%d",t_x_pc, t_x_cur_insn, x_nzp_check, x_new_nzp_bit, x_last_nzp_bit, x_rs_data, x_rd_data, x_nzp_we, x_alu_result, should_stall);
       // if (x_pc == 16'h820a)
       //    $display("x_pc: %h, insn: %b, nzp_check: %h, new_nzp_bit: %d , last_nzp_bit: %d, rs_data: %b, rd_data: %b, nzp_we: %d, alu_result: %h,stall:%d",t_x_pc, t_x_cur_insn, x_nzp_check, x_new_nzp_bit, x_last_nzp_bit, x_rs_data, x_rd_data, x_nzp_we, x_alu_result, should_stall);
+      // if (x_pc == 16'h820d)
+      //       $display("x_pc: %h, insn: %b, nzp_check: %h, new_nzp_bit: %d , last_nzp_bit: %d, rd_data: %b, nzp_we: %d, alu_result: %h,stall:%d",t_x_pc, t_x_cur_insn, x_nzp_check, x_new_nzp_bit, x_last_nzp_bit, x_rd_data, x_nzp_we, x_alu_result, should_stall);
 
-      $display("x_pc: %h, insn: %b, nzp_check: %h, new_nzp_bit: %d , last_nzp_bit: %d, rd_data: %b, nzp_we: %d, alu_result: %h,stall:%d",t_x_pc, t_x_cur_insn, x_nzp_check, x_new_nzp_bit, x_last_nzp_bit, x_rd_data, x_nzp_we, x_alu_result, should_stall);
-      // // Start each $display() format string with a %d argument for time
+      
+      if ($time < 3000)
+         $display("w_pc: %h, w_rt_data : %h,w_rt_sel: %d, w_rs_data :%h, wrs_sel: %d, w_rd_data: %h, x_rd_data: %h, m_rd_data: %h", w_pc, w_rt_data,w_r2sel, w_rs_data,w_r1sel, w_rd_data, x_rd_data, m_rd_data);
+      //    $display("x_pc: %h, nzp_check: %h, new_nzp_bit: %d , last_nzp_bit: %d, rd_data: %b, nzp_we: %d, alu_result: %h,stall:%d",t_x_pc, x_nzp_check, x_new_nzp_bit, x_last_nzp_bit, x_rd_data, x_nzp_we, x_alu_result, should_stall);
+      // // // Start each $display() format string with a %d argument for time
       // it will make the output easier to read.  Use %b, %h, and %d
       // for binary, hex, and decimal output of additional variables.
       // You do not need to add a \n at the end of your format string.
