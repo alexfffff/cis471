@@ -95,22 +95,19 @@ module lc4_processor
    wire [2:0] x_r1sel,x_r2sel,x_wsel;
    wire x_r1re,x_r2re,x_regfile_we,x_nzp_we,x_select_pc_plus_one,x_is_load,x_is_store,x_is_branch,x_is_control_insn;
    
-   wire [15:0] x_rd_data,x_alu_result,x_dmem_addr;
+   wire [15:0] x_alu_result;
    //
    wire [15:0] t_x_pc, t_x_cur_insn, t_x_cur_dmem;
    
-   assign x_dmem_addr = (x_is_store || x_is_load) ? x_alu_result : 16'd0;
 
-   assign o_dmem_addr = x_dmem_addr;
 
    assign t_x_pc = (should_stall) ? 16'd1: x_pc;
    assign t_x_cur_insn = (should_stall) ? 16'd1: x_cur_insn;
-   assign t_x_cur_dmem = (should_stall) ? 16'd1: i_cur_dmem_data;
+   assign t_x_cur_dmem = (should_stall) ? 16'd1: x_cur_dmem;
    
-   wire [15:0] t_x_rs_data, t_x_rt_data, x_pc_plus_one,x_nzp_check;
+   wire [15:0] t_x_rs_data, t_x_rt_data, x_nzp_check;
    wire [2:0] x_last_nzp_bit, x_new_nzp_bit;
    wire x_nzp_result;
-   cla16 h7 (.a(x_pc),.b(16'd1),.cin(1'd0),.sum(x_pc_plus_one));
    
    //mx and wx bypass logic that goes in to X 
    assign t_x_rs_data = ((m_wsel == x_r1sel) && m_regfile_we) ? m_rd_data : ((w_wsel == x_r1sel) && w_regfile_we)? w_rd_data: x_rs_data;
@@ -118,15 +115,15 @@ module lc4_processor
 
    lc4_alu h2(.i_insn(t_x_cur_insn),.i_pc(t_x_pc),.i_r1data(t_x_rs_data),.i_r2data(t_x_rt_data),.o_result(x_alu_result));
    
-   assign x_rd_data = (x_is_load) ? t_x_cur_dmem : (x_select_pc_plus_one) ? x_pc_plus_one : (x_regfile_we) ? x_alu_result : 16'd0;
 
-   assign x_nzp_check = (x_is_load ) ? t_x_cur_dmem: (x_is_control_insn & x_regfile_we) ? x_alu_result: (x_is_control_insn) ? 16'd1: x_alu_result;
+
+   assign x_nzp_check = (m_is_load ) ? i_cur_dmem_data : (x_is_control_insn & x_regfile_we) ? x_alu_result: (x_is_control_insn) ? 16'd1: x_alu_result;
 
    assign x_new_nzp_bit = (should_stall) ? x_last_nzp_bit: (x_nzp_check == 16'd0) ? 3'b010 :  ($signed(x_nzp_check) > $signed(16'd0)) ? 3'b001 : 3'b100;
    Nbit_reg #(3, 3'b000) nzp_reg (.in(x_new_nzp_bit), .out(x_last_nzp_bit), .clk(clk), .we(x_nzp_we), .gwe(gwe), .rst(rst)); 
    assign x_nzp_result = (t_x_cur_insn[11:9] & x_last_nzp_bit) > 3'd0;
 
-   
+   // TODO we shoudl stall with branch as well so if a ldr then a branch also is included in load to use so you also need to check that 
    wire should_stall;
    assign should_stall = (x_is_load) && (((d_r1sel == x_wsel) || (d_r2sel == x_wsel)) && (d_is_store == 0));
 
@@ -139,8 +136,6 @@ module lc4_processor
    Nbit_reg #(16,16'd0) xm_alu_result(.in(x_alu_result), .out(m_alu_result), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(16,16'd0) xm_rs_data(.in(t_x_rs_data), .out(m_rs_data), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(16,16'd0) xm_rt_data(.in(t_x_rt_data), .out(m_rt_data), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
-   Nbit_reg #(16,16'd0) xm_rd_data(.in(x_rd_data), .out(m_rd_data), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
-   Nbit_reg #(16,16'd0) xm_dmem_addr(.in(x_dmem_addr), .out(m_dmem_addr), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(3,3'b000) xm_r1sel(.in(x_r1sel), .out(m_r1sel), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(3,3'b000) xm_r2sel(.in(x_r2sel), .out(m_r2sel), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(3,3'b000) xm_wsel(.in(x_wsel), .out(m_wsel), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
@@ -164,16 +159,24 @@ module lc4_processor
    wire m_dmem_we;
    
    // WM bypass
-   wire [15:0] m_dmem_towrite;
+   wire [15:0] m_dmem_towrite,m_pc_plus_one,t_m_cur_dmem;
+
+   assign t_m_cur_dmem = (m_is_load) ? i_cur_dmem_data: m_cur_dmem;
+
+
+   cla16 h7 (.a(m_pc),.b(16'd1),.cin(1'd0),.sum(m_pc_plus_one));
 
    assign m_dmem_we = m_is_store;
    // assign next_pc = ((is_branch & nzp_result) || is_control_insn)  ? alu_result: pc_plus_one;
    assign m_dmem_towrite = (w_is_load & m_is_store & (m_r2sel == w_wsel)) ? w_rd_data: (m_is_store ) ? m_rt_data : 16'd0;
-   
+   assign m_dmem_addr = (m_is_store || m_is_load) ? m_alu_result : 16'd0;
+
+   assign o_dmem_addr = m_dmem_addr;
    //this is right  
    assign o_dmem_we = m_dmem_we;
    assign o_dmem_towrite = m_dmem_towrite;
-   
+
+   assign m_rd_data = (m_is_load) ?  i_cur_dmem_data : (m_select_pc_plus_one) ? m_pc_plus_one : (m_regfile_we) ? m_alu_result : 16'd0;
 
    Nbit_reg #(16,16'd0) mw_pc(.in(m_pc), .out(w_pc), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(16,16'd0) mw_insn(.in(m_cur_insn), .out(w_cur_insn), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
@@ -183,7 +186,7 @@ module lc4_processor
    Nbit_reg #(16,16'd0) mw_rd_data(.in(m_rd_data), .out(w_rd_data), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(16,16'd0) mw_dmem_addr(.in(m_dmem_addr), .out(w_dmem_addr), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(16,16'd0) mw_dmem_towrite(.in(m_dmem_towrite), .out(w_dmem_towrite), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
-   Nbit_reg #(16,16'd0) mw_cur_dmem(.in(m_cur_dmem), .out(w_cur_dmem), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
+   Nbit_reg #(16,16'd0) mw_cur_dmem(.in(t_m_cur_dmem), .out(w_cur_dmem), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(3,3'b000) mw_r1sel(.in(m_r1sel), .out(w_r1sel), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(3,3'b000) mw_r2sel(.in(m_r2sel), .out(w_r2sel), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(3,3'b000) mw_wsel(.in(m_wsel), .out(w_wsel), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
@@ -207,9 +210,7 @@ module lc4_processor
 
    wire [1:0] stall_value;
    assign stall_value = (w_pc < 16'd4) ? 2'd2: (should_stall) ? 2'd3 :2'd0;
-   //
-   
-   wire [15:0] t_w_rs_data, t_w_rt_data;   
+   // 
 
    //
    assign test_stall = stall_value;
@@ -252,9 +253,10 @@ module lc4_processor
       //    $display("x_pc: %h, insn: %b, nzp_check: %h, new_nzp_bit: %d , last_nzp_bit: %d, rs_data: %b, rd_data: %b, nzp_we: %d, alu_result: %h,stall:%d",t_x_pc, t_x_cur_insn, x_nzp_check, x_new_nzp_bit, x_last_nzp_bit, x_rs_data, x_rd_data, x_nzp_we, x_alu_result, should_stall);
       // if (x_pc == 16'h820d)
       //       $display("x_pc: %h, insn: %b, nzp_check: %h, new_nzp_bit: %d , last_nzp_bit: %d, rd_data: %b, nzp_we: %d, alu_result: %h,stall:%d",t_x_pc, t_x_cur_insn, x_nzp_check, x_new_nzp_bit, x_last_nzp_bit, x_rd_data, x_nzp_we, x_alu_result, should_stall);
+      //$display("m_pc: %h, m_dmem_addr:%h,m_isstore: %d,m_dmem_towrite: %h,should_stall: %d",m_pc,m_dmem_addr,m_is_store,m_dmem_towrite,should_stall);
 
-      $display("w_pc: %h, w_rd_data: %h, w_rd_sel: %d,w_alu_result: %h, m_dmem_addr:%h ,m_alu_result: %h, w_dmem_towrite: %h, w_cur_dmem: %h", w_pc, w_rd_data,w_wsel, w_alu_result,m_dmem_addr, m_alu_result,w_dmem_towrite, w_cur_dmem);
-         //$display("x_pc: %h, nzp_check: %h, new_nzp_bit: %d , last_nzp_bit: %d, rd_data: %h, nzp_we: %d, alu_result: %h, t_x_rs_data: %h",t_x_pc, x_nzp_check, x_new_nzp_bit, x_last_nzp_bit, x_rd_data, x_nzp_we, x_alu_result, x_rs_data);
+      //$display("w_pc: %h, w_rd_data: %h, w_rd_sel: %d,w_alu_result: %h, m_dmem_addr:%h ,m_alu_result: %h, w_dmem_towrite: %h, w_cur_dmem: %h", w_pc, w_rd_data,w_wsel, w_alu_result,m_dmem_addr, m_alu_result,w_dmem_towrite, w_cur_dmem);
+      $display("x_pc: %h, nzp_check: %h, new_nzp_bit: %d , last_nzp_bit: %d,x_rs_sel: %d, t_x_rs_data: %h, x_rs_data: %h, m_rd_sel: %d, m_rd_data: %h, m_we: %d",t_x_pc, x_nzp_check, x_new_nzp_bit, x_last_nzp_bit,x_r1sel,  t_x_rs_data, x_rs_data, m_wsel, m_rd_data, m_regfile_we);
       // // // Start each $display() format string with a %d argument for time
       // it will make the output easier to read.  Use %b, %h, and %d
       // for binary, hex, and decimal output of additional variables.
