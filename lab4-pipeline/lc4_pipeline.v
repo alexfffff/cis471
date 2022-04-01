@@ -135,7 +135,7 @@ module lc4_processor
    
 
 
-   assign x_nzp_check = ((m_is_load && m_cur_insn > 16'd4) && (x_nzp_we == 0)) ? i_cur_dmem_data : (x_is_control_insn & x_regfile_we) ? x_alu_result: (x_is_control_insn) ? 16'd1: x_alu_result;
+   assign x_nzp_check = ((m_is_load && m_cur_insn > 16'd4) && (x_nzp_we == 0)) ? i_cur_dmem_data : (x_is_control_insn & x_select_pc_plus_one) ? 16'd1: (x_is_control_insn & x_regfile_we) ? x_alu_result: (x_is_control_insn) ? 16'd1: x_alu_result;
 
    assign x_new_nzp_bit = (d_should_stall && t_x_cur_insn > 16'd4 && x_nzp_we == 0) ? x_last_nzp_bit: (x_nzp_check == 16'd0) ? 3'b010 :  ($signed(x_nzp_check) > $signed(16'd0)) ? 3'b001 : 3'b100;
    Nbit_reg #(3, 3'b000) nzp_reg (.in(x_new_nzp_bit), .out(x_last_nzp_bit), .clk(clk), .we(x_nzp_we), .gwe(gwe), .rst(rst)); 
@@ -273,8 +273,9 @@ module lc4_processor
       // if ($time < 6000 && $time > 2000)
       //    $display("x_pc: %h,w_pc: %h, nzp_check: %h, new_nzp_bit: %d , last_nzp_bit: %d, i_dmem_data: %h, x_alu_result: %h",t_x_pc , w_pc, x_nzp_check, x_new_nzp_bit, x_last_nzp_bit, i_cur_dmem_data, x_alu_result);
       
-      // if ($time < 6000 && $time > 2000)
-      //    $display("d_pc: %h, x_pc : %h,m_pc: %h, w_pc: %h, w_cur_insn: %h, w_rd_data: %h,in_d_cur_insn: %h, x_alu_result: %h, ss %d%d%d%d%d",t_d_pc,t_x_pc,m_pc, w_pc,w_cur_insn, w_rd_data,in_d_cur_insn, x_alu_result, d_should_stall, x_should_stall, m_should_stall, w_should_stall, should_branch);
+      // if ($time < 800000&& $time > 780000)
+      //    //$display("d_pc: %h, x_pc : %h,m_pc: %h, w_pc: %h, w_cur_insn: %h, w_rd_data: %h,in_d_cur_insn: %h, x_alu_result: %h, ss %d%d%d%d%d",t_d_pc,t_x_pc,m_pc, w_pc,w_cur_insn, w_rd_data,in_d_cur_insn, x_alu_result, d_should_stall, x_should_stall, m_should_stall, w_should_stall, should_branch);
+      //    $display("x_pc: %h,w_pc: %h, nzp_check: %h, new_nzp_bit: %d , last_nzp_bit: %d, i_dmem_data: %h, x_alu_result: %h",t_x_pc , w_pc, x_nzp_check, x_new_nzp_bit, x_last_nzp_bit, i_cur_dmem_data, x_alu_result);
 
       
       
