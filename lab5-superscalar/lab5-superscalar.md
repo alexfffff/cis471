@@ -9,7 +9,7 @@ The initial value of your `pc_reg` in Fetch should be `16'h8200`. **You only nee
 The only time you should stall unnecessarily is on a `BRnzp` instruction that depends on a prior load. See also the Stalling section for important information about stalling. 
 
 Your datapath must contain the following elements:
-
+ 
 + **Two In-Order Pipelines:** These are referred to as "pipe A" and "pipe B." Pipe B contains the instruction immediately following the parallel instruction in pipe A (unless pipe B contains a pipeline bubble).
 + **Multi-Ported, Bypassed Register File:** You will need to create a register file with two write ports and four read ports. We have provided the module interface in `lc4_regfile_ss.v` (Note: Port names for the register file *are different from* previous labs!).
    + If both write ports specify the same destination, only pipe B's write should succeed (since the instruction in pipe B follows the instruction in pipe A in program order).
