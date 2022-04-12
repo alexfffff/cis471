@@ -66,7 +66,7 @@ module lc4_processor(input wire         clk,             // main clock
    assign t_pc_pc_A = (d_should_stall_A) ? d_pc_A:(d_switch) ?  t_d_pc_B :o_cur_pc;
    assign t_pc_cur_insn_A = (should_branch) ? 16'd3: (d_should_stall_A) ? d_cur_insn_A: (d_switch) ? t_d_cur_insn_B: i_cur_insn_A;
 
-   assign t_pc_pc_B = (d_should_stall_A) ? d_pc_B: (d_switch) ? pc_plus_one :pc_plus_one;
+   assign t_pc_pc_B = (d_should_stall_A) ? d_pc_B: (d_switch) ? o_cur_pc :pc_plus_one;
    assign t_pc_cur_insn_B = (should_branch) ? 16'd3: (d_should_stall_B) ? d_cur_insn_B: (d_switch) ? i_cur_insn_A: i_cur_insn_B;
    
    Nbit_reg #(16,16'd0) pcd_pc_B(.in(t_pc_pc_B), .out(d_pc_B), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
@@ -125,12 +125,12 @@ module lc4_processor(input wire         clk,             // main clock
    assign d_should_stall_A = 1'd0;
    assign d_should_stall_B = 1'd0;
 
-   assign d_switch = (d_regfile_we_A & d_wsel_A == d_r1sel_B & d_r1re_B) || (d_regfile_we_A & d_wsel_A == d_r2sel_B & d_r2re_B) || (in_d_pc_B == 16'h8201) ;
+   assign d_switch = (d_regfile_we_A & d_wsel_A == d_r1sel_B & d_r1re_B) || (d_regfile_we_A & d_wsel_A == d_r2sel_B & d_r2re_B) ;
    
    Nbit_reg #(16,16'd0) dx_pc_A(.in(in_d_pc_A), .out(x_pc_A), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(16,16'd0) dx_insn_A(.in(in_d_cur_insn_A), .out(x_cur_insn_A), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
-   Nbit_reg #(16,16'd0) dx_rs_data_A(.in(t_d_rs_data_A), .out(x_rs_data_A), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
-   Nbit_reg #(16,16'd0) dx_rt_data_A(.in(t_d_rt_data_A), .out(x_rt_data_A), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
+   Nbit_reg #(16,16'd0) dx_rs_data_A(.in(d_rs_data_A), .out(x_rs_data_A), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
+   Nbit_reg #(16,16'd0) dx_rt_data_A(.in(d_rt_data_A), .out(x_rt_data_A), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(3,3'b000) dx_r1sel_A(.in(d_r1sel_A), .out(x_r1sel_A), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(3,3'b000) dx_r2sel_A(.in(d_r2sel_A), .out(x_r2sel_A), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(3,3'b000) dx_wsel_A(.in(d_wsel_A), .out(x_wsel_A), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
@@ -149,8 +149,8 @@ module lc4_processor(input wire         clk,             // main clock
 
    Nbit_reg #(16,16'd0) dx_pc_B(.in(in_d_pc_B), .out(x_pc_B), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(16,16'd0) dx_insn_B(.in(in_d_cur_insn_B), .out(x_cur_insn_B), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
-   Nbit_reg #(16,16'd0) dx_rs_data_B(.in(t_d_rs_data_B), .out(x_rs_data_B), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
-   Nbit_reg #(16,16'd0) dx_rt_data_B(.in(t_d_rt_data_B), .out(x_rt_data_B), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
+   Nbit_reg #(16,16'd0) dx_rs_data_B(.in(d_rs_data_B), .out(x_rs_data_B), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
+   Nbit_reg #(16,16'd0) dx_rt_data_B(.in(d_rt_data_B), .out(x_rt_data_B), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(3,3'b000) dx_r1sel_B(.in(d_r1sel_B), .out(x_r1sel_B), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(3,3'b000) dx_r2sel_B(.in(d_r2sel_B), .out(x_r2sel_B), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
    Nbit_reg #(3,3'b000) dx_wsel_B(.in(d_wsel_B), .out(x_wsel_B), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
@@ -204,7 +204,7 @@ module lc4_processor(input wire         clk,             // main clock
 
 
    lc4_alu h2(.i_insn(t_x_cur_insn_A),.i_pc(t_x_pc_A),.i_r1data(t_x_rs_data_A),.i_r2data(t_x_rt_data_A),.o_result(x_alu_result_A));
-   lc4_alu h2_B(.i_insn(t_x_cur_insn_A),.i_pc(t_x_pc_A),.i_r1data(t_x_rs_data_A),.i_r2data(t_x_rt_data_A),.o_result(x_alu_result_A));
+   lc4_alu h2_B(.i_insn(t_x_cur_insn_B),.i_pc(t_x_pc_B),.i_r1data(t_x_rs_data_B),.i_r2data(t_x_rt_data_B),.o_result(x_alu_result_B));
 
    // assign x_nzp_check_A = ((m_is_load_A && m_cur_insn > 16'd4) && (x_nzp_we == 0)) ? i_cur_dmem_data : (x_is_control_insn & x_select_pc_plus_one) ? 16'd1: (x_is_control_insn & x_regfile_we) ? x_alu_result: (x_is_control_insn) ? 16'd1: x_alu_result;
 
@@ -216,10 +216,13 @@ module lc4_processor(input wire         clk,             // main clock
    // assign should_branch = ((x_is_branch && t_x_cur_insn > 16'd4) && x_nzp_result) || (x_is_control_insn && t_x_cur_insn > 16'd4) ;
    assign should_branch = 1'b0;
 
-   assign x_new_nzp_bit_A = 3'd0;
-   assign x_last_nzp_bit_B = x_new_nzp_bit_A;
-   assign x_new_nzp_bit_B = 3'd0;
+   assign x_nzp_check_A =  (x_is_control_insn_A & x_select_pc_plus_one_A) ? 16'd1: (x_is_control_insn_A & x_regfile_we_A) ? x_alu_result_A: (x_is_control_insn_A) ? 16'd1: x_alu_result_A;
+   assign x_new_nzp_bit_A = (x_nzp_check_A == 16'd0) ? 3'b010 :  ($signed(x_nzp_check_A) > $signed(16'd0)) ? 3'b001 : 3'b100;
    assign x_nzp_result_A = 0;
+
+   assign x_last_nzp_bit_B = x_new_nzp_bit_A;
+   assign x_nzp_check_B = (x_is_control_insn_B & x_select_pc_plus_one_B) ? 16'd1: (x_is_control_insn_B & x_regfile_we_B) ? x_alu_result_B: (x_is_control_insn_B) ? 16'd1: x_alu_result_B;
+   assign x_new_nzp_bit_B = (x_nzp_check_B == 16'd0) ? 3'b010 :  ($signed(x_nzp_check_B) > $signed(16'd0)) ? 3'b001 : 3'b100;
    assign x_nzp_result_B = 0;
    
    Nbit_reg #(16,16'd0) xm_pc_A(.in(t_x_pc_A), .out(m_pc_A), .we(1'b1), .gwe(gwe), .rst(rst), .clk(clk));
@@ -436,8 +439,8 @@ module lc4_processor(input wire         clk,             // main clock
       // if ($time < 6000 && $time > 2000)
       //    $display("x_pc: %h,w_pc: %h, nzp_check: %h, new_nzp_bit: %d , last_nzp_bit: %d, i_dmem_data: %h, x_alu_result: %h",t_x_pc , w_pc, x_nzp_check, x_new_nzp_bit, x_last_nzp_bit, i_cur_dmem_data, x_alu_result);
       if ($time < 1000)
-         $display("w_should_stall_A: %d, w_should_stall_B: %d, w_cur_insn_A: %b, w_cur_insn_B: %b, w_pc_A: %H, w_pc_B: %H",w_should_stall_A, w_should_stall_B, w_cur_insn_A, w_cur_insn_B, w_pc_A, w_pc_B);
-
+         //$display("x_pc_A: %h, x_pc_B: %h, x_nzp_check_A: %h, x_new_nzp_bit_A: %b, x_new_nzp_bit_B: %b, x_last_nzp_bit_B %b, alu_rs_A: %h", x_pc_A, x_pc_B, x_nzp_check_A,  x_new_nzp_bit_A, x_new_nzp_bit_B, x_last_nzp_bit_B,x_alu_result_A);
+         $display("w_pc_A: %h, w_pc_B: %h, w_alu_result_A: %h, w_alu_result_B: %h, w_wsel_A: %d, w_wsel_B:%d",w_pc_A,w_pc_B, w_alu_result_A, w_alu_result_B, w_wsel_A, w_wsel_B);
       // if ($time < 800000&& $time > 780000)
       //    //$display("d_pc: %h, x_pc : %h,m_pc: %h, w_pc: %h, w_cur_insn: %h, w_rd_data: %h,in_d_cur_insn: %h, x_alu_result: %h, ss %d%d%d%d%d",t_d_pc,t_x_pc,m_pc, w_pc,w_cur_insn, w_rd_data,in_d_cur_insn, x_alu_result, d_should_stall, x_should_stall, m_should_stall, w_should_stall, should_branch);
       //    $display("x_pc: %h,w_pc: %h, nzp_check: %h, new_nzp_bit: %d , last_nzp_bit: %d, i_dmem_data: %h, x_alu_result: %h",t_x_pc , w_pc, x_nzp_check, x_new_nzp_bit, x_last_nzp_bit, i_cur_dmem_data, x_alu_result);
