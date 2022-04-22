@@ -73,34 +73,34 @@ module lc4_alu(input  wire [15:0] i_insn,
 
       assign temp17 = $signed(i_r1data) >>> i_insn[3:0];
 
-       assign o_result = (isncode === 5'd0) ? add :
-                        (isncode === 5'd1) ? i_r1data * i_r2data :
-                        (isncode === 5'd2) ? sub :
-                        (isncode === 5'd3) ? div :
-                        (isncode === 5'd4) ? mod :
-                        (isncode === 5'd5) ? i_r1data & i_r2data :
-                        (isncode === 5'd6) ?  ~ i_r1data:
-                        (isncode === 5'd7) ?  i_r1data | i_r2data:
-                        (isncode === 5'd8) ? i_r1data ^ i_r2data:
-                        (isncode === 5'd9) ? i_r1data << i_insn[3:0]:
-                        (isncode === 5'd10) ? temp17 :
-                        (isncode === 5'd11) ? i_r1data >> i_insn[3:0]:
-                        (isncode === 5'd12) ? (i_insn[8] == 1'b0 ? {7'd0, i_insn[8:0]}:{7'b1111111, i_insn[8:0]}):
-                        (isncode === 5'd13) ? (i_r1data & 'hFF) | (i_insn[7:0] << 8):
-                        (isncode === 5'd14) ? (i_insn[5] == 1'b0 ? i_r1data + {10'd0,i_insn[5:0]} : i_r1data +  {10'b1111111111,i_insn[5:0]}):
-                        (isncode === 5'd15) ?  (i_insn[5] == 1'b0 ? i_r1data + {10'd0, i_insn[5:0]} : i_r1data + {10'b1111111111, i_insn[5:0]}):
-                        (isncode === 5'd16) ? (i_r1data == i_r2data ? 16'd0 :  $signed(i_r1data) > $signed(i_r2data) ? 16'd1 :'hFFFF):
-                        (isncode === 5'd17) ? (i_r1data == i_r2data ? 16'd0 :  i_r1data > i_r2data ? 16'd1 :'hFFFF):
-                        (isncode === 5'd18) ?  (i_r1data == {{9{i_insn[6]}},i_insn[6:0]} ? 16'd0 : $signed(i_r1data) > $signed(i_insn[6:0]) ? 16'd1 : 'hFFFF):
-                        (isncode === 5'd19) ? (i_r1data == i_insn[6:0] ? 16'd0 :  i_r1data > i_insn[6:0] ? 16'd1 :'hFFFF):
-                        (isncode === 5'd20) ? (i_insn[8] == 1'b0 ? i_pc + 1 + {7'd0, i_insn[8:0]}: i_pc + 1 + {7'b1111111, i_insn[8:0]}): 
-                        (isncode === 5'd21) ? (i_insn[10] == 1'b0 ? i_pc + 1 + {5'd0, i_insn[10:0]}: i_pc + 1 + {5'b11111, i_insn[10:0]}):
-                        (isncode === 5'd22) ? i_r1data:
-                        (isncode === 5'd23) ? (i_pc & 'h8000) | (i_insn[10:0] <<4):
-                        (isncode === 5'd24) ? i_r1data:
-                        (isncode === 5'd25) ?  i_r1data:
-                        (isncode === 5'd26) ? ('h8000 | i_insn[7:0]) : 
-                        (isncode === 5'd27) ? addi:
-                        (isncode === 5'd28) ? i_r1data & {{11{i_insn[4]}},i_insn[4:0]}:
+       assign o_result = (isncode == 5'd0) ? add :
+                        (isncode == 5'd1) ? i_r1data * i_r2data :
+                        (isncode == 5'd2) ? sub :
+                        (isncode == 5'd3) ? div :
+                        (isncode == 5'd4) ? mod :
+                        (isncode == 5'd5) ? i_r1data & i_r2data :
+                        (isncode == 5'd6) ?  ~ i_r1data:
+                        (isncode == 5'd7) ?  i_r1data | i_r2data:
+                        (isncode == 5'd8) ? i_r1data ^ i_r2data:
+                        (isncode == 5'd9) ? i_r1data << i_insn[3:0]:
+                        (isncode == 5'd10) ? temp17 :
+                        (isncode == 5'd11) ? i_r1data >> i_insn[3:0]:
+                        (isncode == 5'd12) ? (i_insn[8] == 1'b0 ? {7'd0, i_insn[8:0]}:{7'b1111111, i_insn[8:0]}):
+                        (isncode == 5'd13) ? (i_r1data & 'hFF) | (i_insn[7:0] << 8):
+                        (isncode == 5'd14) ? (i_insn[5] == 1'b0 ? i_r1data + {10'd0,i_insn[5:0]} : i_r1data +  {10'b1111111111,i_insn[5:0]}):
+                        (isncode == 5'd15) ?  (i_insn[5] == 1'b0 ? i_r1data + {10'd0, i_insn[5:0]} : i_r1data + {10'b1111111111, i_insn[5:0]}):
+                        (isncode == 5'd16) ? (i_r1data == i_r2data ? 16'd0 :  $signed(i_r1data) > $signed(i_r2data) ? 16'd1 :'hFFFF):
+                        (isncode == 5'd17) ? (i_r1data == i_r2data ? 16'd0 :  i_r1data > i_r2data ? 16'd1 :'hFFFF):
+                        (isncode == 5'd18) ?  (i_r1data == {{9{i_insn[6]}},i_insn[6:0]} ? 16'd0 : $signed(i_r1data) > $signed(i_insn[6:0]) ? 16'd1 : 'hFFFF):
+                        (isncode == 5'd19) ? (i_r1data == i_insn[6:0] ? 16'd0 :  i_r1data > i_insn[6:0] ? 16'd1 :'hFFFF):
+                        (isncode == 5'd20) ? (i_insn[8] == 1'b0 ? i_pc + 1 + {7'd0, i_insn[8:0]}: i_pc + 1 + {7'b1111111, i_insn[8:0]}): 
+                        (isncode == 5'd21) ? (i_insn[10] == 1'b0 ? i_pc + 1 + {5'd0, i_insn[10:0]}: i_pc + 1 + {5'b11111, i_insn[10:0]}):
+                        (isncode == 5'd22) ? i_r1data:
+                        (isncode == 5'd23) ? (i_pc & 'h8000) | (i_insn[10:0] <<4):
+                        (isncode == 5'd24) ? i_r1data:
+                        (isncode == 5'd25) ?  i_r1data:
+                        (isncode == 5'd26) ? ('h8000 | i_insn[7:0]) : 
+                        (isncode == 5'd27) ? addi:
+                        (isncode == 5'd28) ? i_r1data & {{11{i_insn[4]}},i_insn[4:0]}:
                         i_pc + 1;      
 endmodule

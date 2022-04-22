@@ -1,0 +1,80 @@
+Copyright 1986-2017 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2017.4 (lin64) Build 2086221 Fri Dec 15 20:54:30 MST 2017
+| Date         : Mon Apr 11 21:53:51 2022
+| Host         : big05.seas.upenn.edu running 64-bit openSUSE Leap 15.3
+| Command      : report_timing -file ./output/post_route_timing_report.txt
+| Design       : lc4_system
+| Device       : 7z020-clg484
+| Speed File   : -1  PRODUCTION 1.11 2014-09-11
+------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (MET) :             35.989ns  (required time - arrival time)
+  Source:                 vga_cntrl_inst/svga_t_g/PIXEL_COUNT_reg[9]/C
+                            (rising edge-triggered cell FDRE clocked by clk_vga_inv_design_1_clk_wiz_0_0  {rise@20.000ns fall@40.000ns period=40.000ns})
+  Destination:            vga_cntrl_inst/svga_t_g/LINE_COUNT_reg[3]/R
+                            (rising edge-triggered cell FDRE clocked by clk_vga_inv_design_1_clk_wiz_0_0  {rise@20.000ns fall@40.000ns period=40.000ns})
+  Path Group:             clk_vga_inv_design_1_clk_wiz_0_0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            40.000ns  (clk_vga_inv_design_1_clk_wiz_0_0 rise@60.000ns - clk_vga_inv_design_1_clk_wiz_0_0 rise@20.000ns)
+  Data Path Delay:        3.373ns  (logic 0.937ns (27.781%)  route 2.436ns (72.219%))
+  Logic Levels:           2  (LUT5=1 LUT6=1)
+  Clock Path Skew:        -0.023ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    -1.389ns = ( 58.611 - 60.000 ) 
+    Source Clock Delay      (SCD):    -0.750ns = ( 19.250 - 20.000 ) 
+    Clock Pessimism Removal (CPR):    0.617ns
+  Clock Uncertainty:      0.091ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.168ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_vga_inv_design_1_clk_wiz_0_0 rise edge)
+                                                     20.000    20.000 r  
+    Y9                                                0.000    20.000 f  CLOCK_100MHz (IN)
+                         net (fo=0)                   0.000    20.000    mmcm0/CLOCK_100MHz
+    Y9                   IBUF (Prop_ibuf_I_O)         1.490    21.490 f  mmcm0/clkin1_ibufg/O
+                         net (fo=1, routed)           1.285    22.775    mmcm0/clk_in1_design_1_clk_wiz_0_0
+    MMCME2_ADV_X0Y0      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT1B)
+                                                     -7.343    15.432 r  mmcm0/mmcm_adv_inst/CLKOUT1B
+                         net (fo=1, routed)           1.855    17.287    mmcm0/clk_vga_inv_design_1_clk_wiz_0_0
+    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.101    17.388 r  mmcm0/clkout3_buf/O
+                         net (fo=27, routed)          1.862    19.250    vga_cntrl_inst/svga_t_g/clk_vga_inv
+    SLICE_X110Y27        FDRE                                         r  vga_cntrl_inst/svga_t_g/PIXEL_COUNT_reg[9]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X110Y27        FDRE (Prop_fdre_C_Q)         0.456    19.706 r  vga_cntrl_inst/svga_t_g/PIXEL_COUNT_reg[9]/Q
+                         net (fo=6, routed)           1.083    20.789    vga_cntrl_inst/svga_t_g/pixel_count[9]
+    SLICE_X111Y27        LUT5 (Prop_lut5_I1_O)        0.154    20.943 f  vga_cntrl_inst/svga_t_g/LINE_COUNT[9]_i_5/O
+                         net (fo=2, routed)           0.663    21.606    vga_cntrl_inst/svga_t_g/LINE_COUNT[9]_i_5_n_0
+    SLICE_X112Y26        LUT6 (Prop_lut6_I5_O)        0.327    21.933 r  vga_cntrl_inst/svga_t_g/LINE_COUNT[9]_i_1/O
+                         net (fo=10, routed)          0.691    22.623    vga_cntrl_inst/svga_t_g/LINE_COUNT0
+    SLICE_X112Y26        FDRE                                         r  vga_cntrl_inst/svga_t_g/LINE_COUNT_reg[3]/R
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_vga_inv_design_1_clk_wiz_0_0 rise edge)
+                                                     60.000    60.000 f  
+    Y9                                                0.000    60.000 f  CLOCK_100MHz (IN)
+                         net (fo=0)                   0.000    60.000    mmcm0/CLOCK_100MHz
+    Y9                   IBUF (Prop_ibuf_I_O)         1.420    61.420 f  mmcm0/clkin1_ibufg/O
+                         net (fo=1, routed)           1.162    62.582    mmcm0/clk_in1_design_1_clk_wiz_0_0
+    MMCME2_ADV_X0Y0      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT1B)
+                                                     -7.438    55.144 r  mmcm0/mmcm_adv_inst/CLKOUT1B
+                         net (fo=1, routed)           1.691    56.835    mmcm0/clk_vga_inv_design_1_clk_wiz_0_0
+    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.091    56.926 r  mmcm0/clkout3_buf/O
+                         net (fo=27, routed)          1.684    58.611    vga_cntrl_inst/svga_t_g/clk_vga_inv
+    SLICE_X112Y26        FDRE                                         r  vga_cntrl_inst/svga_t_g/LINE_COUNT_reg[3]/C
+                         clock pessimism              0.617    59.227    
+                         clock uncertainty           -0.091    59.136    
+    SLICE_X112Y26        FDRE (Setup_fdre_C_R)       -0.524    58.612    vga_cntrl_inst/svga_t_g/LINE_COUNT_reg[3]
+  -------------------------------------------------------------------
+                         required time                         58.612    
+                         arrival time                         -22.623    
+  -------------------------------------------------------------------
+                         slack                                 35.989    
+
+
+
+
